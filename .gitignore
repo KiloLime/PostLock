@@ -1,0 +1,8 @@
+# PostLock — everything is public here except your secrets.
+
+.env
+__pycache__/
+*.pyc
+captions.json
+venv/
+.venv/

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostLock — publishing tools for short-form creators</title>
+<style>
+  :root { --bg:#0f1115; --card:#171a21; --ink:#e8eaf0; --muted:#9aa3b2;
+          --accent:#4f8cff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+         background:var(--bg); color:var(--ink); }
+  header,footer { max-width:960px; margin:0 auto; padding:20px 24px;
+                  display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+  header nav, footer nav { margin-left:auto; display:flex; gap:16px; }
+  header a, footer a { color:var(--muted); text-decoration:none; }
+  header a:hover, footer a:hover { color:var(--ink); }
+  main { max-width:960px; margin:0 auto; padding:24px; }
+  h1 { font-size:2.4rem; margin:.2em 0; }
+  h2 { margin-top:2em; }
+  .tag { color:var(--accent); font-weight:600; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+           gap:16px; margin-top:24px; }
+  .card { background:var(--card); border:1px solid #232838; border-radius:12px;
+          padding:18px; }
+  .card h3 { margin:.2em 0; }
+  pre { background:#0b0d11; border:1px solid #232838; border-radius:8px;
+        padding:14px; overflow-x:auto; }
+  code { font-family:ui-monospace,Consolas,monospace; }
+</style>
+</head>
+<body>
+<header>
+  <strong>PostLock</strong>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#quickstart">Quick start</a>
+    <a href="https://github.com/KiloLime/PostLock">GitHub</a>
+    <a href="terms.html">Terms</a>
+    <a href="privacy.html">Privacy</a>
+  </nav>
+</header>
+<main>
+  <h1>Your shorts, <span class="tag">previewed before they go live.</span></h1>
+  <p>PostLock is an open-source publishing tool for short-form creators.
+     It turns a narration script into platform-ready titles and captions,
+     then delivers the finished video to your TikTok inbox — and private on
+     YouTube — so you give every post a final look. Nothing goes public
+     without you.</p>
+
+  <div class="cards" id="features">
+    <div class="card"><h3>Platform copy</h3>
+      <p>One script in, title + caption + hashtags out, tuned per platform
+      with a clear, question-raising short-form style.</p></div>
+    <div class="card"><h3>TikTok draft delivery</h3>
+      <p>Official Content Posting API upload flow
+      (<code>post_mode: MEDIA_UPLOAD</code>, <code>video.upload</code>
+      scope) into your inbox. Tap Post in the app when you're ready.</p></div>
+    <div class="card"><h3>YouTube private upload</h3>
+      <p>Uploads as private via the Data API v3 — publish or schedule in
+      Studio. Full metadata arrives with the video.</p></div>
+    <div class="card"><h3>Self-hosted, open source</h3>
+      <p>MIT-licensed on GitHub. Bring your own keys, keep your own data.</p></div>
+  </div>
+
+  <h2 id="quickstart">Quick start</h2>
+  <pre><code>pip install requests
+cp .env.example .env          # add your DeepSeek + TikTok credentials
+python postlock.py captions --script script.txt --out captions.json
+python postlock.py tiktok-draft --video final.mp4 --captions captions.json --dry-run
+python postlock.py tiktok-draft --video final.mp4 --captions captions.json</code></pre>
+
+  <p>Full documentation lives in the
+     <a href="https://github.com/KiloLime/PostLock">GitHub repository</a>.</p>
+</main>
+<footer>
+  <span>PostLock — MIT licensed</span>
+  <nav>
+    <a href="terms.html">Terms of Service</a>
+    <a href="privacy.html">Privacy Policy</a>
+  </nav>
+</footer>
+</body>
+</html>
