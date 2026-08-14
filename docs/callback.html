@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostLock — TikTok authorization</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #0f1115; color: #e8eaf0;
+         display: flex; align-items: center; justify-content: center; min-height: 90vh; }
+  main { max-width: 480px; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h2>PostLock — TikTok authorization</h2>
+  <p id="status">Finishing the authorization handoff…</p>
+</main>
+<script>
+  // TikTok redirects here (HTTPS) with ?code=... after the user approves.
+  // The code is forwarded to the local PostLock helper server on the user's
+  // machine (localhost is a secure context, so this handoff is permitted).
+  // Nothing is stored or logged on this page.
+  const q = window.location.search;
+  const status = document.getElementById("status");
+  if (q && (q.includes("code=") || q.includes("error="))) {
+    const target = "http://localhost:8766/callback" + q;
+    fetch(target, { mode: "no-cors" })
+      .then(function () { status.textContent = "Handoff complete — return to the terminal."; })
+      .catch(function () {
+        try { window.location.replace(target);
+              status.textContent = "Handing off…"; }
+        catch (e) { status.textContent = "Please copy the URL from the address bar and paste it in the terminal."; }
+      });
+  } else {
+    status.textContent = "No authorization code received. Close this tab and try again.";
+  }
+</script>
+</body>
+</html>
