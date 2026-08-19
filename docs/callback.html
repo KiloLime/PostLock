@@ -27,20 +27,21 @@
 </main>
 <script>
   // TikTok redirects here (HTTPS) with ?code=... after the user approves.
-  // The code is forwarded to the local PostLock helper server on the user's
-  // machine (localhost is a secure context, so this handoff is permitted).
-  // Nothing is stored or logged on this page.
+  // This page hands the code to the local PostLock helper server on the
+  // user's machine by navigating directly to it (localhost is a secure
+  // context, so this handoff is permitted). Nothing is stored or logged
+  // on this page.
   const q = window.location.search;
   const status = document.getElementById("status");
   if (q && (q.includes("code=") || q.includes("error="))) {
     const target = "http://localhost:8766/callback" + q;
-    fetch(target, { mode: "no-cors" })
-      .then(function () { status.textContent = "Handoff complete — return to the terminal."; })
-      .catch(function () {
-        try { window.location.replace(target);
-              status.textContent = "Handing off…"; }
-        catch (e) { status.textContent = "Please copy the URL from the address bar and paste it in the terminal."; }
-      });
+    status.textContent = "Handing off to the PostLock app…";
+    window.location.href = target;
+    setTimeout(function () {
+      status.textContent = "The PostLock app did not respond. Close this "
+        + "tab, make sure the PostLock app is open and not busy, then try "
+        + "connecting again.";
+    }, 8000);
   } else {
     status.textContent = "No authorization code received. Close this tab and try again.";
   }

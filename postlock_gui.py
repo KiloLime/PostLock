@@ -128,7 +128,7 @@ def authorize(log) -> bool:
         log(f"Could not open the local callback port {REDIRECT_PORT} — "
             "close any other PostLock window and try again.")
         return False
-    thread = threading.Thread(target=server.handle_request, daemon=True)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
 
     verifier, challenge = _make_pkce()
@@ -146,6 +146,7 @@ def authorize(log) -> bool:
     webbrowser.open(auth_page)
 
     thread.join(timeout=300)
+    server.shutdown()
     server.server_close()
     if _CallbackHandler.errors:
         log(f"Authorization failed: {_CallbackHandler.errors[0]}")
