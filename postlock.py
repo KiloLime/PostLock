@@ -31,7 +31,7 @@ TIKTOK_TOKEN_URL = f"{TIKTOK_API}/oauth/token/"
 TIKTOK_INBOX_INIT = f"{TIKTOK_API}/post/publish/inbox/video/init/"
 TIKTOK_STATUS_FETCH = f"{TIKTOK_API}/post/publish/status/fetch/"
 STATUS_POLL_S = 3.0
-STATUS_MAX_WAIT_S = 120.0
+STATUS_MAX_WAIT_S = 600.0
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +97,7 @@ def generate_captions(script: str, title: str = "") -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _tiktok_token() -> str:
+def _tiktoken_with_env(log=None) -> str:
     token = _env("TIKTOK_ACCESS_TOKEN")
     if not token:
         sys.exit("TIKTOK_ACCESS_TOKEN missing in .env — run the OAuth flow "
@@ -105,8 +105,14 @@ def _tiktok_token() -> str:
     return token
 
 
+def _tiktok_token() -> str:
+    return _tiktoken_with_env()
+
+
 def _inbox_init(token: str, video_path: str, title: str) -> dict:
     size = os.path.getsize(video_path)
+    chunk_size = min(5 * 1024 * 1024, size) if size else 5 * 1024 * 1024
+    total_chunk_count = max(1, size // chunk_size)
     resp = requests.post(
         TIKTOK_INBOX_INIT,
         headers={"Authorization": f"Bearer {token}",
@@ -117,9 +123,8 @@ def _inbox_init(token: str, video_path: str, title: str) -> dict:
             "source_info": {
                 "source": "FILE_UPLOAD",
                 "video_size": size,
-                "chunk_size": 5 * 1024 * 1024,
-                "total_chunk_count": max(
-                    1, (size + 5 * 1024 * 1024 - 1) // (5 * 1024 * 1024)),
+                "chunk_size": chunk_size,
+                "total_chunk_count": total_chunk_count,
             },
         }),
         timeout=60,
@@ -136,15 +141,17 @@ def _inbox_init(token: str, video_path: str, title: str) -> dict:
             "chunk_size": chunk_size}
 
 
-def _put_chunks(token: str, upload_url: str, video_path: str, chunk_size: int) -> None:
+def _put_chunks(token: str, upload_url: str, video_path: str, chunk_size: int,
+                log=None) -> None:
     size = os.path.getsize(video_path)
+    total = max(1, size // chunk_size) if chunk_size else 1
     sent = 0
     with open(video_path, "rb") as fh:
-        while sent < size:
-            chunk = fh.read(chunk_size)
+        for i in range(total):
+            chunk = fh.read() if i == total - 1 else fh.read(chunk_size)
             if not chunk:
                 break
-            end = min(sent + len(chunk), size)
+            end = sent + len(chunk)
             resp = requests.put(
                 upload_url,
                 data=chunk,
@@ -155,13 +162,20 @@ def _put_chunks(token: str, upload_url: str, video_path: str, chunk_size: int) -
                 },
                 timeout=(60, 600),
             )
-            if resp.status_code not in (200, 201):
+            if resp.status_code not in (200, 201, 206):
                 sys.exit(f"chunk upload HTTP {resp.status_code}: {resp.text[:300]}")
             sent = end
+            if log and (i + 1) % 4 == 0:
+                log(f"  chunk {i + 1}/{total} uploaded")
 
 
-def _wait_delivered(token: str, publish_id: str) -> None:
+def _wait_delivered(token: str, publish_id: str, log=None) -> None:
+    """Poll the status API until the draft is delivered.
+
+    log: optional callable(msg) for progress reporting (used by the GUI).
+    """
     deadline = time.time() + STATUS_MAX_WAIT_S
+    last_report = 0.0
     while time.time() < deadline:
         resp = requests.post(
             TIKTOK_STATUS_FETCH,
@@ -177,18 +191,32 @@ def _wait_delivered(token: str, publish_id: str) -> None:
         fail = data.get("fail_reason")
         if status == "FINISH":
             return
+        if status == "SEND_TO_USER_INBOX":
+            return
         if status == "FAIL" or fail:
             sys.exit(f"inbox upload failed: {fail or status}")
+        now = time.time()
+        if log and now - last_report >= 10:
+            elapsed = int(now - (deadline - STATUS_MAX_WAIT_S))
+            log(f"TikTok is processing the video… ({elapsed}s, "
+                f"status: {status or 'processing'})")
+            last_report = now
         time.sleep(STATUS_POLL_S)
-    sys.exit(f"status timeout after {STATUS_MAX_WAIT_S}s")
+    sys.exit(f"status timeout after {STATUS_MAX_WAIT_S}s "
+             f"(publish_id={publish_id} — re-check with the status API)")
 
 
-def tiktok_draft(video_path: str, captions: dict, dry_run: bool = False) -> None:
+def tiktok_draft(video_path: str, captions: dict, dry_run: bool = False,
+                 log=None) -> None:
+    """Upload a finished video to the creator's TikTok inbox as a draft.
+
+    log: optional callable(msg) for progress reporting (used by the GUI).
+    """
     if not os.path.exists(video_path):
         sys.exit(f"video not found: {video_path}")
     cap = captions.get("tiktok") or {}
     title = cap.get("title", "") or os.path.basename(video_path)
-    token = _tiktok_token()
+    token = _tiktoken_with_env(log=log)
 
     if dry_run:
         print(f"[dry-run] POST {TIKTOK_INBOX_INIT} (post_mode=MEDIA_UPLOAD, "
@@ -199,13 +227,26 @@ def tiktok_draft(video_path: str, captions: dict, dry_run: bool = False) -> None
               "TikTok inbox for review")
         return
 
+    if log:
+        log(f"Uploading {os.path.getsize(video_path) // (1024 * 1024)} MB "
+            f"in chunks…")
     init = _inbox_init(token, video_path, title)
-    _put_chunks(token, init["upload_url"], video_path, init["chunk_size"])
-    _wait_delivered(token, init["publish_id"])
+    if log:
+        log("Upload URL issued. Sending chunks…")
+    _put_chunks(token, init["upload_url"], video_path, init["chunk_size"],
+                log=log)
+    if log:
+        log("All chunks accepted. Waiting for TikTok to process the "
+            "draft…")
+    _wait_delivered(token, init["publish_id"], log=log)
     handle = _env("TIKTOK_USERNAME", "").lstrip("@")
     where = f"https://www.tiktok.com/@{handle}" if handle else "your TikTok app"
-    print(f"delivered to your TikTok inbox ({where}) — open the app and tap "
-          "Post to publish")
+    if log:
+        log(f"Delivered to your TikTok inbox ({where}) — open the app and "
+            "tap Post to publish")
+    else:
+        print(f"delivered to your TikTok inbox ({where}) — open the app and "
+              "tap Post to publish")
 
 
 # ---------------------------------------------------------------------------
