@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import queue
 import secrets
 import threading
 import webbrowser
@@ -79,16 +80,23 @@ def _make_pkce() -> tuple[str, str]:
 
 class _CallbackHandler(BaseHTTPRequestHandler):
     codes: list[str] = []
+    errors: list[str] = []
 
     def do_GET(self) -> None:  # noqa: N802 -- HTTP API
         parsed = parse_qs(self.path.split("?", 1)[1]) if "?" in self.path else {}
         code = parsed.get("code", [""])[0]
         error = parsed.get("error", [""])[0]
-        if code:
+        state = parsed.get("state", [""])[0]
+        if state and state != "postlock":
+            self.errors.append(f"unexpected state: {state}")
+            body = b"<h2>Authorization failed: state mismatch.</h2>"
+            self.send_response(400)
+        elif code:
             self.codes.append(code)
             body = b"<h2>PostLock connected!</h2><p>Return to the app.</p>"
             self.send_response(200)
         elif error:
+            self.errors.append(error)
             body = f"<h2>Authorization failed: {error}</h2>".encode()
             self.send_response(400)
         else:
@@ -113,7 +121,13 @@ def authorize(log) -> bool:
         return False
 
     _CallbackHandler.codes = []
-    server = HTTPServer(("localhost", REDIRECT_PORT), _CallbackHandler)
+    _CallbackHandler.errors = []
+    try:
+        server = HTTPServer(("localhost", REDIRECT_PORT), _CallbackHandler)
+    except OSError:
+        log(f"Could not open the local callback port {REDIRECT_PORT} — "
+            "close any other PostLock window and try again.")
+        return False
     thread = threading.Thread(target=server.handle_request, daemon=True)
     thread.start()
 
@@ -133,6 +147,9 @@ def authorize(log) -> bool:
 
     thread.join(timeout=300)
     server.server_close()
+    if _CallbackHandler.errors:
+        log(f"Authorization failed: {_CallbackHandler.errors[0]}")
+        return False
     if not _CallbackHandler.codes:
         log("Timed out waiting for authorization.")
         return False
@@ -224,6 +241,9 @@ class PostLockApp:
         self.log.pack(fill="both", expand=True, padx=10, pady=(8, 12))
         self.log.configure(state="disabled")
 
+        self._ui_queue: queue.Queue = queue.Queue()
+        root.after(50, self._drain_ui)
+
         self._log("PostLock ready. Pick a video and press "
                   "\"Deliver to TikTok inbox\".")
         self._log("The app finds the script, generates captions, connects "
@@ -234,16 +254,33 @@ class PostLockApp:
     # -- helpers ---------------------------------------------------------
 
     def _log(self, msg: str, color: str = FG) -> None:
-        self.log.configure(state="normal")
-        self.log.insert("end", f"{msg}\n")
-        self.log.see("end")
-        self.log.configure(state="disabled")
+        self._ui_queue.put(("log", msg, color))
 
     def _set_busy(self, busy: bool) -> None:
-        self._busy = busy
-        state = "disabled" if busy else "normal"
-        self.deliver_btn.configure(state=state)
-        self.connect_btn.configure(state=state)
+        self._ui_queue.put(("busy", busy))
+
+    def _drain_ui(self) -> None:
+        """Apply queued UI updates on the main thread (tkinter is not
+        thread-safe; workers only push to the queue)."""
+        try:
+            while True:
+                kind, *rest = self._ui_queue.get_nowait()
+                if kind == "log":
+                    msg, color = rest
+                    self.log.configure(state="normal")
+                    self.log.insert("end", f"{msg}\n", (color,))
+                    self.log.tag_configure(color, foreground=color)
+                    self.log.see("end")
+                    self.log.configure(state="disabled")
+                elif kind == "busy":
+                    busy = rest[0]
+                    self._busy = busy
+                    state = "disabled" if busy else "normal"
+                    self.deliver_btn.configure(state=state)
+                    self.connect_btn.configure(state=state)
+        except queue.Empty:
+            pass
+        self.root.after(50, self._drain_ui)
 
     def _thread(self, fn) -> None:
         threading.Thread(target=fn, daemon=True).start()

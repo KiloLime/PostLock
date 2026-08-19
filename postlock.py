@@ -97,7 +97,7 @@ def generate_captions(script: str, title: str = "") -> dict:
 # ---------------------------------------------------------------------------
 
 
-def _tiktoken_with_env(log=None) -> str:
+def _tiktok_token() -> str:
     token = _env("TIKTOK_ACCESS_TOKEN")
     if not token:
         sys.exit("TIKTOK_ACCESS_TOKEN missing in .env — run the OAuth flow "
@@ -105,14 +105,10 @@ def _tiktoken_with_env(log=None) -> str:
     return token
 
 
-def _tiktok_token() -> str:
-    return _tiktoken_with_env()
-
-
 def _inbox_init(token: str, video_path: str, title: str) -> dict:
     size = os.path.getsize(video_path)
     chunk_size = min(5 * 1024 * 1024, size) if size else 5 * 1024 * 1024
-    total_chunk_count = max(1, size // chunk_size)
+    total_chunk_count = (size + chunk_size - 1) // chunk_size if size else 1
     resp = requests.post(
         TIKTOK_INBOX_INIT,
         headers={"Authorization": f"Bearer {token}",
@@ -144,7 +140,7 @@ def _inbox_init(token: str, video_path: str, title: str) -> dict:
 def _put_chunks(token: str, upload_url: str, video_path: str, chunk_size: int,
                 log=None) -> None:
     size = os.path.getsize(video_path)
-    total = max(1, size // chunk_size) if chunk_size else 1
+    total = (size + chunk_size - 1) // chunk_size if chunk_size else 1
     sent = 0
     with open(video_path, "rb") as fh:
         for i in range(total):
@@ -216,7 +212,7 @@ def tiktok_draft(video_path: str, captions: dict, dry_run: bool = False,
         sys.exit(f"video not found: {video_path}")
     cap = captions.get("tiktok") or {}
     title = cap.get("title", "") or os.path.basename(video_path)
-    token = _tiktoken_with_env(log=log)
+    token = _tiktok_token()
 
     if dry_run:
         print(f"[dry-run] POST {TIKTOK_INBOX_INIT} (post_mode=MEDIA_UPLOAD, "
