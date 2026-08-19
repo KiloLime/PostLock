@@ -16,6 +16,7 @@ import os
 import queue
 import secrets
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -145,7 +146,11 @@ def authorize(log) -> bool:
     log("Opening the TikTok authorize page in your browser…")
     webbrowser.open(auth_page)
 
-    thread.join(timeout=300)
+    deadline = time.time() + 300
+    while time.time() < deadline:
+        if _CallbackHandler.codes or _CallbackHandler.errors:
+            break
+        time.sleep(0.2)
     server.shutdown()
     server.server_close()
     if _CallbackHandler.errors:
