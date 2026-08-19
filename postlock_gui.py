@@ -287,7 +287,8 @@ class PostLockApp:
 
     def _pick_video(self) -> None:
         path = filedialog.askopenfilename(
-            title="Select finished video", filetypes=[("MP4", "*.mp4")])
+            title="Select finished video", filetypes=[("MP4", "*.mp4")],
+            initialdir=ASSETS)
         if path:
             self.video_path = path
             self.video_label.configure(text=f"Video: {Path(path).name}")
