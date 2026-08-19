@@ -51,9 +51,9 @@ password.
 
 ## Documentation
 
-- [PostLock site](https://postlock.surge.sh)
-- [Terms of Service](https://postlock.surge.sh/terms.html)
-- [Privacy Policy](https://postlock.surge.sh/privacy.html)
+- [PostLock site](https://kilolime.github.io/PostLock/)
+- [Terms of Service](https://kilolime.github.io/PostLock/terms.html)
+- [Privacy Policy](https://kilolime.github.io/PostLock/privacy.html)
 
 ## License
 

@@ -34,7 +34,10 @@ import postlock as _postlock
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
 REDIRECT_PORT = 8766
-REDIRECT_URI = f"http://localhost:{REDIRECT_PORT}/callback/"
+# Must match the redirect URI registered in the TikTok developer console.
+# TikTok redirects to this HTTPS page, which forwards the code to the local
+# helper server below (localhost is a secure context, so the handoff works).
+REDIRECT_URI = "https://kilolime.github.io/PostLock/callback.html"
 SCOPES = "user.info.basic,video.upload"
 AUTH_URL = "https://www.tiktok.com/v2/auth/authorize/"
 

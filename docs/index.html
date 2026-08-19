@@ -4,38 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="tiktok-developers-site-verification" content="csXV8Cw0sWT2AHRfQIlAkGrQSRPFtokW">
+<meta name="description" content="PostLock — open-source publishing tools for short-form creators. Turn a narration script into platform-ready captions and deliver finished videos to your TikTok inbox for review before publishing.">
 <title>PostLock — publishing tools for short-form creators</title>
-<style>
-  :root { --bg:#0f1115; --card:#171a21; --ink:#e8eaf0; --muted:#9aa3b2;
-          --accent:#4f8cff; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-         background:var(--bg); color:var(--ink); }
-  header,footer { max-width:960px; margin:0 auto; padding:20px 24px;
-                  display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
-  header nav, footer nav { margin-left:auto; display:flex; gap:16px; }
-  header a, footer a { color:var(--muted); text-decoration:none; }
-  header a:hover, footer a:hover { color:var(--ink); }
-  main { max-width:960px; margin:0 auto; padding:24px; }
-  h1 { font-size:2.4rem; margin:.2em 0; }
-  h2 { margin-top:2em; }
-  .tag { color:var(--accent); font-weight:600; }
-  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-           gap:16px; margin-top:24px; }
-  .card { background:var(--card); border:1px solid #232838; border-radius:12px;
-          padding:18px; }
-  .card h3 { margin:.2em 0; }
-  pre { background:#0b0d11; border:1px solid #232838; border-radius:8px;
-        padding:14px; overflow-x:auto; }
-  code { font-family:ui-monospace,Consolas,monospace; }
-</style>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 <header>
-  <strong>PostLock</strong>
+  <img class="brand" src="assets/icon.png" alt="PostLock logo">
+  <span class="brand-name">PostLock</span>
   <nav>
     <a href="#features">Features</a>
-    <a href="#quickstart">Quick start</a>
+    <a href="#how">How it works</a>
+    <a href="#start">Getting started</a>
+    <a href="#docs">Documentation</a>
+    <a href="#faq">FAQ</a>
     <a href="https://github.com/KiloLime/PostLock">GitHub</a>
     <a href="terms.html">Terms</a>
     <a href="privacy.html">Privacy</a>
@@ -43,39 +28,165 @@
 </header>
 <main>
   <h1>Your shorts, <span class="tag">previewed before they go live.</span></h1>
-  <p>PostLock is an open-source publishing tool for short-form creators.
-     It turns a narration script into platform-ready titles and captions,
-     then delivers the finished video to your TikTok inbox — and private on
-     YouTube — so you give every post a final look. Nothing goes public
-     without you.</p>
+  <p class="subtitle">PostLock is an open-source publishing tool for short-form
+    creators. It turns a narration script into platform-ready titles and
+    captions, then delivers the finished video to your TikTok inbox — and
+    private on YouTube — so you give every post a final look. Nothing goes
+    public without you.</p>
+  <div class="cta">
+    <a class="btn" href="#start">Get started</a>
+    <a class="btn ghost" href="https://github.com/KiloLime/PostLock">View source on GitHub</a>
+  </div>
 
-  <div class="cards" id="features">
+  <h2 id="features">Features</h2>
+  <div class="cards">
     <div class="card"><h3>Platform copy</h3>
       <p>One script in, title + caption + hashtags out, tuned per platform
       with a clear, question-raising short-form style.</p></div>
     <div class="card"><h3>TikTok draft delivery</h3>
       <p>Official Content Posting API upload flow
-      (<code>post_mode: MEDIA_UPLOAD</code>, <code>video.upload</code>
-      scope) into your inbox. Tap Post in the app when you're ready.</p></div>
+      (<code>post_mode: MEDIA_UPLOAD</code>, <code>video.upload</code> scope)
+      into your inbox. Tap Post in the app when you're ready.</p></div>
     <div class="card"><h3>YouTube private upload</h3>
       <p>Uploads as private via the Data API v3 — publish or schedule in
       Studio. Full metadata arrives with the video.</p></div>
     <div class="card"><h3>Self-hosted, open source</h3>
-      <p>MIT-licensed on GitHub. Bring your own keys, keep your own data.</p></div>
+      <p>MIT-licensed on GitHub. Bring your own keys, keep your own data.
+      No accounts, no cloud service, no tracking.</p></div>
   </div>
 
-  <h2 id="quickstart">Quick start</h2>
+  <h2 id="how">How it works</h2>
+  <div class="steps">
+    <div class="step"><h3>Write your narration</h3>
+      <p class="muted">PostLock reads your final narration script
+      (<code>FINAL_SCRIPT.txt</code> in your project's
+      <code>assets/writing_lab/</code> folder, or any script you point it at).</p></div>
+    <div class="step"><h3>Generate platform copy</h3>
+      <p class="muted">DeepSeek (or any OpenAI-compatible endpoint) turns the
+      script into a title, caption and hashtags for TikTok and YouTube
+      Shorts.</p></div>
+    <div class="step"><h3>Deliver to your inbox</h3>
+      <p class="muted">PostLock uploads the finished MP4 through the official
+      TikTok Content Posting API as a <strong>draft</strong> — it lands in
+      your TikTok inbox for review, never published automatically.</p></div>
+    <div class="step"><h3>You tap Post</h3>
+      <p class="muted">Open the TikTok app, give the draft a final look, and
+      publish it yourself. Full control, every time.</p></div>
+  </div>
+
+  <h2 id="start">Getting started</h2>
+  <h3>Desktop app (GUI)</h3>
+  <ol>
+    <li>Install <a href="https://www.python.org/downloads/">Python 3.10+</a>
+        and <code>requests</code> (<code>pip install requests</code>).</li>
+    <li>Download the project from
+        <a href="https://github.com/KiloLime/PostLock">GitHub</a>.</li>
+    <li>Copy <code>.env.example</code> to <code>.env</code> and add your
+        DeepSeek API key and TikTok client key/secret.</li>
+    <li>Run <code>python postlock_gui.py</code>, pick a finished video, and
+        press <strong>Deliver to TikTok inbox</strong>. The app finds the
+        script, generates captions, connects your TikTok account once via
+        OAuth, and uploads.</li>
+  </ol>
+  <h3>Command line (CLI)</h3>
   <pre><code>pip install requests
 cp .env.example .env          # add your DeepSeek + TikTok credentials
 python postlock.py captions --script script.txt --out captions.json
 python postlock.py tiktok-draft --video final.mp4 --captions captions.json --dry-run
 python postlock.py tiktok-draft --video final.mp4 --captions captions.json</code></pre>
+  <p class="muted small">The TikTok flow uses the official
+  <strong>Content Posting API — Upload draft to TikTok</strong> endpoint
+  (<code>/v2/post/publish/inbox/video/init/</code>). Your access token comes
+  from the standard TikTok OAuth flow; PostLock never sees your TikTok
+  password.</p>
 
-  <p>Full documentation lives in the
-     <a href="https://github.com/KiloLime/PostLock">GitHub repository</a>.</p>
+  <h2 id="docs">Documentation</h2>
+  <h3>Commands</h3>
+  <table>
+    <tr><th>Command</th><th>What it does</th></tr>
+    <tr><td><code>captions</code></td><td>Generate title, caption and
+        hashtags from a narration script (TikTok, YouTube Shorts).</td></tr>
+    <tr><td><code>tiktok-draft</code></td><td>Upload a finished MP4 to your
+        TikTok inbox as a draft via the official Content Posting API.</td></tr>
+    <tr><td><code>--dry-run</code></td><td>Preview exactly what would be
+        uploaded — posts nothing.</td></tr>
+  </table>
+  <h3>Environment variables</h3>
+  <table>
+    <tr><th>Variable</th><th>Purpose</th></tr>
+    <tr><td><code>DEEPSEEK_API_KEY</code></td><td>Key for the caption
+        generation model (or any OpenAI-compatible endpoint).</td></tr>
+    <tr><td><code>DEEPSEEK_BASE_URL</code></td><td>Endpoint base URL
+        (defaults to <code>https://api.deepseek.com</code>).</td></tr>
+    <tr><td><code>DEEPSEEK_MODEL</code></td><td>Model name
+        (defaults to <code>deepseek-chat</code>).</td></tr>
+    <tr><td><code>TIKTOK_CLIENT_KEY</code></td><td>TikTok developer app
+        client key.</td></tr>
+    <tr><td><code>TIKTOK_CLIENT_SECRET</code></td><td>TikTok developer app
+        client secret.</td></tr>
+    <tr><td><code>TIKTOK_ACCESS_TOKEN</code></td><td>OAuth access token
+        (stored locally, saved by the connect flow).</td></tr>
+    <tr><td><code>TIKTOK_REFRESH_TOKEN</code></td><td>OAuth refresh token
+        (stored locally).</td></tr>
+    <tr><td><code>TIKTOK_USERNAME</code></td><td>Optional — used in the
+        success message so you know where the draft landed.</td></tr>
+  </table>
+  <h3>Troubleshooting</h3>
+  <ul class="muted">
+    <li><strong>Authorization fails or times out</strong> — re-run the app
+        and press "Connect TikTok (re-authorize)". Check that your TikTok
+        client key/secret in <code>.env</code> match the developer app.</li>
+    <li><strong>Draft takes a while to appear</strong> — TikTok processes
+        uploads asynchronously. PostLock polls the status API for up to 10
+        minutes and reports progress.</li>
+    <li><strong>Access token expired</strong> — the app detects it and
+        re-authorizes once automatically.</li>
+  </ul>
+
+  <h2 id="faq">FAQ</h2>
+  <div class="faq">
+    <details><summary>Does PostLock post anything automatically?</summary>
+      <p>No. Uploads use <code>post_mode: MEDIA_UPLOAD</code> — the video
+      lands in your TikTok inbox as a draft. Nothing is published until you
+      tap Post in the TikTok app.</p></details>
+    <details><summary>Is it free?</summary>
+      <p>The software is free, open source (MIT). You only pay for the APIs
+      you bring: your DeepSeek key and your TikTok/YouTube developer
+      credentials.</p></details>
+    <details><summary>Where are my API keys and tokens stored?</summary>
+      <p>Only in the local <code>.env</code> file on your machine. PostLock
+      runs a one-time OAuth consent in your browser and never sees your
+      TikTok password.</p></details>
+    <details><summary>Do I need to be technical to use it?</summary>
+      <p>The GUI is a one-button flow: pick a video, connect TikTok once,
+      and deliver. The CLI offers the same flow with more control.</p></details>
+    <details><summary>Which TikTok scopes does it use?</summary>
+      <p><code>user.info.basic</code> (identify the connected creator) and
+      <code>video.upload</code> (upload as draft to the creator's inbox).
+      Direct posting is intentionally not enabled — you stay in control.</p></details>
+    <details><summary>Does it work with YouTube Shorts?</summary>
+      <p>Yes — captions are generated per platform, and the same video can be
+      uploaded as private on YouTube via the Data API v3.</p></details>
+  </div>
+
+  <h2 id="changelog">Changelog</h2>
+  <table>
+    <tr><th>Version</th><th>Changes</th></tr>
+    <tr><td>v0.1.0</td><td>Captions from narration scripts; TikTok draft
+        delivery via Content Posting API; YouTube private upload; desktop
+        GUI with one-time OAuth.</td></tr>
+  </table>
+
+  <h2 id="support">Support &amp; contact</h2>
+  <p>PostLock is maintained on GitHub. For bug reports, feature requests and
+  questions, <a href="https://github.com/KiloLime/PostLock/issues">open an
+  issue</a> on the repository. Please review the
+  <a href="terms.html">Terms of Service</a> and
+  <a href="privacy.html">Privacy Policy</a>.</p>
 </main>
 <footer>
-  <span>PostLock — MIT licensed</span>
+  <img class="brand" src="assets/icon.png" alt="PostLock logo">
+  <span class="small muted">PostLock — MIT licensed open-source software</span>
   <nav>
     <a href="terms.html">Terms of Service</a>
     <a href="privacy.html">Privacy Policy</a>
