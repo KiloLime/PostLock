@@ -1,5 +1,9 @@
 # PostLock
 
+<p align="center">
+  <img src="assets/icon.png" alt="PostLock logo" width="128">
+</p>
+
 Open-source publishing tools for short-form creators: turn a narration
 script into platform-ready titles and captions, and deliver finished videos
 to your TikTok inbox for review before publishing.
